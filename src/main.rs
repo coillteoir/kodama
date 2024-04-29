@@ -1,9 +1,34 @@
 fn main() {
-    println!("{}", compile("cube 1".to_string()))
+    println!("{}", compile("cuboid 2 3 4".to_string()))
+}
+
+fn cuboid(sx: f32, sy: f32, sz: f32) -> String {
+    println!("GENERATING CUBOID");
+    if sx <= 0.0 || sy <= 0.0 || sz <= 0.0 {
+        return "could not generate cuboid, side length less than or equal to zero".to_string();
+    }
+    format!(
+        r#"v 0 {sy} {sz}
+v 0 0 {sz}
+v {sx} 0 {sz}
+v {sx} {sy} {sz}
+v 0 {sy} 0
+v 0 0 0
+v {sx} 0 0
+v {sx} {sy} 0
+f -8 -7 -6 -5
+f -1 -2 -3 -4
+f -5 -6 -2 -1
+f -4 -8 -5 -1
+f -4 -3 -7 -8
+f -7 -3 -2 -6
+"#
+    )
 }
 
 fn cube(x: f32, y: f32, z: f32, size: f32) -> String {
-    if size < 0.0 {
+    println!("GENERATING CUBE");
+    if size <= 0.0 {
         return "ERROR: cannot generate cube of size less than zero".to_string();
     }
     let size_x = size + x;
@@ -16,7 +41,7 @@ v {size_x} {y} {size_z}
 v {size_x} {size_y} {size_z}
 v {x} {size_y} {z}
 v {x} {y} {z}
-v {size} {y} {z}
+v {size_x} {y} {z}
 v {size_x} {size_y} {z}
 f -8 -7 -6 -5
 f -1 -2 -3 -4
@@ -41,7 +66,12 @@ fn compile(data: String) -> String {
                 0.0,
                 tokens[1].parse::<f32>().expect("invalid value given"),
             )),
-            &_ => println!("not supported yet"),
+            "cuboid" => result.push_str(&cuboid(
+                tokens[1].parse::<f32>().expect("non numeric value given"),
+                tokens[2].parse::<f32>().expect("non numeric value given"),
+                tokens[3].parse::<f32>().expect("non numeric value given"),
+            )),
+            &_ => println!("{} not supported", tokens[0]),
         }
     }
     result
@@ -52,9 +82,15 @@ mod tests {
     use crate::compile;
     use std::fs;
     #[test]
-    fn test_compile() {
-        let input = fs::read_to_string("./tests/cube/cube.kda").expect("could not load file");
-        let result = fs::read_to_string("./tests/cube/cube.obj").expect("could not load file");
-        assert_eq!(compile(input), result)
+    fn test_compile_cube() {
+        let input = fs::read_to_string("./tests/cube/main.kda").expect("could not load file");
+        let result = fs::read_to_string("./tests/cube/result.obj").expect("could not load file");
+        assert_eq!(compile(input), result);
+    }
+    #[test]
+    fn test_compile_cuboid() {
+        let input = fs::read_to_string("./tests/cuboid/main.kda").expect("could not load file");
+        let result = fs::read_to_string("./tests/cuboid/result.obj").expect("could not load file");
+        assert_eq!(compile(input), result);
     }
 }
