@@ -5,7 +5,9 @@ fn main() {
 fn cuboid(sx: f32, sy: f32, sz: f32) -> Result<String, String> {
     println!("GENERATING CUBOID");
     if sx <= 0.0 || sy <= 0.0 || sz <= 0.0 {
-        return Err("could not generate cuboid, side length less than or equal to zero".to_string());
+        return Err(
+            "could not generate cuboid, side length less than or equal to zero".to_string(),
+        );
     }
     Ok(format!(
         r#"v 0 {sy} {sz}
@@ -26,15 +28,14 @@ f -7 -3 -2 -6
     ))
 }
 
-fn cube(x: f32, y: f32, z: f32, size: f32) -> Result<String, String> {
+fn cube(_x: f32, _y: f32, _z: f32, size: f32) -> Result<String, String> {
     println!("GENERATING CUBE");
     if size <= 0.0 {
-        return Err(String::from("ERROR: cannot generate cube of size less than zero"))
+        return Err(String::from(
+            "ERROR: cannot generate cube of size less than zero",
+        ));
     }
-    match cuboid(size, size, size) {
-        Ok(res) => return Ok(res),
-        Err(e) => return Err(e)
-    }
+    cuboid(size, size, size)
 }
 
 fn compile(data: String) -> Result<String, String> {
@@ -50,28 +51,44 @@ fn compile(data: String) -> Result<String, String> {
                 0.0,
                 0.0,
                 0.0,
-                tokens.get(1).expect("please specify a size argument").parse::<f32>().expect("invalid value given"),
-            ){
-                Ok(g) => data = String::from(g),
-                Err(e) => error.push_str(&e)
+                tokens
+                    .get(1)
+                    .expect("please specify a size argument")
+                    .parse::<f32>()
+                    .expect("invalid value given"),
+            ) {
+                Ok(g) => data = g,
+                Err(e) => error.push_str(&e),
             },
             Some(&"cuboid") => match cuboid(
-                tokens.get(1).expect("invalid number of arguments in cuboid").parse::<f32>().expect("non numeric value given"),
-                tokens.get(2).expect("invalid number of arguments in cuboid").parse::<f32>().expect("non numeric value given"),
-                tokens.get(3).expect("invalid number of arguments in cuboid").parse::<f32>().expect("non numeric value given"),
-            ){
-                Ok(g) => data = String::from(g),
-                Err(e) => error.push_str(&e)
+                tokens
+                    .get(1)
+                    .expect("invalid number of arguments in cuboid")
+                    .parse::<f32>()
+                    .expect("non numeric value given"),
+                tokens
+                    .get(2)
+                    .expect("invalid number of arguments in cuboid")
+                    .parse::<f32>()
+                    .expect("non numeric value given"),
+                tokens
+                    .get(3)
+                    .expect("invalid number of arguments in cuboid")
+                    .parse::<f32>()
+                    .expect("non numeric value given"),
+            ) {
+                Ok(g) => data = g,
+                Err(e) => error.push_str(&e),
             },
             Some(&_) => eprintln!("{} not supported", tokens[0]),
-            None => unimplemented!()
+            None => unimplemented!(),
         }
         result.push_str(&data);
     }
-    if error != "" {
-        return Err(error)
+    if !error.is_empty() {
+        return Err(error);
     }
-    return Ok(result)
+    Ok(result)
 }
 
 #[cfg(test)]
