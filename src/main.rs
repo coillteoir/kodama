@@ -4,6 +4,12 @@ struct Point {
     z: f32,
 }
 
+impl Point {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x: x, y: y, z: z }
+    }
+}
+
 fn main() {
     println!("{}", compile("cuboid 2 3 4".to_string()))
 }
@@ -18,16 +24,20 @@ fn cuboid(sx: f32, sy: f32, sz: f32) -> String {
         return "could not generate cuboid, side length less than or equal to zero".to_string();
     }
     let points = [
-        Point {x: 0.0,y: sy,z: sz,},
-        Point {x: 0.0,y: 0.0,z: sz,},
-        Point {x: sx,y: 0.0,z: sz,},
-        Point {x: sx,y: sy,z: sz,},
-        Point {x: 0.0,y: sy,z: 0.0,},
-        Point {x: 0.0,y: 0.0,z: 0.0,},
-        Point {x: sx,y: 0.0,z: 0.0,},
-        Point {x: sx,y: sy,z: 0.0,},
+        Point::new(0.0, sy, sz),
+        Point::new(0.0, 0.0, sz),
+        Point::new(sx, 0.0, sz),
+        Point::new(sx, sy, sz),
+        Point::new(0.0, sy, 0.0),
+        Point::new(0.0, 0.0, 0.0),
+        Point::new(sx, 0.0, 0.0),
+        Point::new(sx, sy, 0.0),
     ];
-    let vertexString = points.into_iter().map(|p| format!("v {0} {1} {2}", p.x, p.y, p.z)).collect::<Vec<String>>().join("\n");
+    let vertexString = points
+        .into_iter()
+        .map(|p| format!("v {0} {1} {2}", p.x, p.y, p.z))
+        .collect::<Vec<String>>()
+        .join("\n");
     format!(
         r#"{0}
 f -8 -7 -6 -5
@@ -36,7 +46,8 @@ f -5 -6 -2 -1
 f -4 -8 -5 -1
 f -4 -3 -7 -8
 f -7 -3 -2 -6
-"#, vertexString
+"#,
+        vertexString
     )
 }
 
