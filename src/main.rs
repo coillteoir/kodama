@@ -25,12 +25,12 @@ fn vertex_string(points: Vec<Point>) -> String {
         .join("\n")
 }
 
-fn prism(side_len: f32) -> Result<String, String> {
+fn prism(_radius: f32) -> Result<String, String> {
     let points = [
-        Point::new(0.000000, (PI/3.0).sin(), 0.000000),
+        Point::new(0.000000, (PI / 3.0).sin(), 0.000000),
         Point::new(0.0, 0.000000, 0.0_f32.cos()),
-        Point::new((4.0 * PI/3.0).sin(), 0.000000, (2.0 * -PI/3.0).cos()),
-        Point::new((2.0 * PI/3.0).sin(), 0.000000, (2.0 * -PI/3.0).cos()),
+        Point::new((4.0 * PI / 3.0).sin(), 0.000000, (2.0 * -PI / 3.0).cos()),
+        Point::new((2.0 * PI / 3.0).sin(), 0.000000, (2.0 * -PI / 3.0).cos()),
     ];
 
     Ok(format!(
@@ -113,22 +113,26 @@ mod tests {
     use crate::compile;
     use std::fs;
 
-    fn run_test(input_path: &str, result_path: &str) {
-        let input = fs::read_to_string(input_path).expect("could not load file");
-        let result = fs::read_to_string(result_path).expect("could not load file");
+    fn run_test(input_path: String, result_path: String) {
+        let input = fs::read_to_string(&input_path).expect("could not load file");
+        let result = fs::read_to_string(&result_path).expect("could not load file");
         assert_eq!(compile(input), Ok(result));
     }
-
     #[test]
-    fn test_compile_cube() {
-        run_test("./tests/cube/main.kda", "./tests/cube/result.obj");
-    }
-    #[test]
-    fn test_compile_cuboid() {
-        run_test("./tests/cuboid/main.kda", "./tests/cuboid/result.obj");
-    }
-    #[test]
-    fn test_compile_prism() {
-        run_test("./tests/prism/main.kda", "./tests/prism/result.obj");
+    fn walk_tests() {
+        match fs::read_dir("./tests/") {
+            Ok(entries) => {
+                for entry in entries {
+                    let path = entry.expect("could not open dir").path();
+                    let input = path.join("main.kda");
+                    let output = path.join("result.obj");
+                    run_test(
+                        input.into_os_string().into_string().unwrap(),
+                        output.into_os_string().into_string().unwrap(),
+                    )
+                }
+            }
+            Err(e) => eprintln!("{}", e)
+        }
     }
 }
