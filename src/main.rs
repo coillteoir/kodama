@@ -6,22 +6,24 @@ struct Point {
 
 impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
-        Self { x: x, y: y, z: z }
+        Self { x, y, z }
     }
 }
 
 fn main() {
-    println!("{}", compile("cuboid 2 3 4".to_string()))
+    println!("{}", compile("cuboid 2 3 4".to_string()).unwrap())
 }
 
 fn prism() -> String {
     "".to_string()
 }
 
-fn cuboid(sx: f32, sy: f32, sz: f32) -> String {
+fn cuboid(sx: f32, sy: f32, sz: f32) -> Result<String, String> {
     println!("GENERATING CUBOID");
     if sx <= 0.0 || sy <= 0.0 || sz <= 0.0 {
-        return "could not generate cuboid, side length less than or equal to zero".to_string();
+        return Err(
+            "could not generate cuboid, side length less than or equal to zero".to_string(),
+        );
     }
     let points = [
         Point::new(0.0, sy, sz),
@@ -38,7 +40,7 @@ fn cuboid(sx: f32, sy: f32, sz: f32) -> String {
         .map(|p| format!("v {0} {1} {2}", p.x, p.y, p.z))
         .collect::<Vec<String>>()
         .join("\n");
-    format!(
+    Ok(format!(
         r#"{0}
 f -8 -7 -6 -5
 f -1 -2 -3 -4
@@ -48,52 +50,57 @@ f -4 -3 -7 -8
 f -7 -3 -2 -6
 "#,
         vertex_string
-    )
+    ))
 }
 
-fn cube(size: f32) -> String {
+fn cube(size: f32) -> Result<String, String> {
     println!("GENERATING CUBE");
     if size <= 0.0 {
-        return "ERROR: cannot generate cube of size less than zero".to_string();
+        return Err("ERROR: cannot generate cube of size less than zero".to_string());
     }
     cuboid(size, size, size)
 }
 
-fn compile(data: String) -> String {
+fn compile(data: String) -> Result<String, String> {
     let mut result = String::from("");
 
     let lines = data.split('\n');
     for line in lines {
         let tokens: Vec<&str> = line.split(' ').collect();
         match tokens[0] {
-            "cube" => result.push_str(&cube(
-                tokens[1].parse::<f32>().expect("invalid value given"),
-            )),
-            "cuboid" => result.push_str(&cuboid(
-                tokens[1].parse::<f32>().expect("non numeric value given"),
-                tokens[2].parse::<f32>().expect("non numeric value given"),
-                tokens[3].parse::<f32>().expect("non numeric value given"),
-            )),
+            "cube" => result
+                .push_str(&cube(tokens[1].parse::<f32>().expect("invalid value given")).unwrap()),
+            "cuboid" => result.push_str(
+                &cuboid(
+                    tokens[1].parse::<f32>().expect("non numeric value given"),
+                    tokens[2].parse::<f32>().expect("non numeric value given"),
+                    tokens[3].parse::<f32>().expect("non numeric value given"),
+                )
+                .unwrap(),
+            ),
             &_ => println!("{} not supported", tokens[0]),
         }
     }
-    result
+    Ok(result)
 }
 
 #[cfg(test)]
 mod tests {
     use crate::compile;
     use std::fs;
+
+    fn run_test(input_path: &str, result_path: &str) {
+        let input = fs::read_to_string(input_path).expect("could not load file");
+        let result = fs::read_to_string(result_path).expect("could not load file");
+        assert_eq!(compile(input), Ok(result));
+    }
+
     #[test]
     fn test_compile_cube() {
-        let input = fs::read_to_string("./tests/cube/main.kda").expect("could not load file");
-        let result = fs::read_to_string("./tests/cube/result.obj").expect("could not load file");
-        assert_eq!(compile(input), result);
+        run_test("./tests/cube/main.kda", "./tests/cube/result.obj");
     }
     #[test]
     fn test_compile_cuboid() {
-        let input = fs::read_to_string("./tests/cuboid/main.kda").expect("could not load file");
-        let result = fs::read_to_string("./tests/cuboid/result.obj").expect("could not load file");
-        assert_eq!(compile(input), result);
+        run_test("./tests/cuboid/main.kda", "./tests/cuboid/result.obj");
     }
 }
