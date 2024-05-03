@@ -1,6 +1,7 @@
 # Kodama
 
 Kodama is a language for describing 3D models.
+There is no spec, or CLI as of now. As requirements are evaluated, the spec will be refined to fit users' desires.
 
 ## Mission Statement
 
