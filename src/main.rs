@@ -27,10 +27,10 @@ fn vertex_string(points: Vec<Point>) -> String {
 
 fn prism(side_len: f32) -> Result<String, String> {
     let points = [
-        Point::new(0.000000, 1.333333, 0.000000),
-        Point::new(0.0, 0.000000, 1.000000),
-        Point::new((4.0 * PI/3.0).sin(), 0.000000, (-PI/3.0).sin()),
-        Point::new((2.0 * PI/3.0).sin(), 0.000000, (-PI/3.0).sin()),
+        Point::new(0.000000, (PI/3.0).sin(), 0.000000),
+        Point::new(0.0, 0.000000, 0.0_f32.cos()),
+        Point::new((4.0 * PI/3.0).sin(), 0.000000, (2.0 * -PI/3.0).cos()),
+        Point::new((2.0 * PI/3.0).sin(), 0.000000, (2.0 * -PI/3.0).cos()),
     ];
 
     Ok(format!(
