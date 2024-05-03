@@ -11,6 +11,9 @@ impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
+    pub fn to_obj_string(&self) -> String {
+        format!("v {0} {1} {2}", self.x, self.y, self.z)
+    }
 }
 
 fn main() {
@@ -20,7 +23,7 @@ fn main() {
 fn vertex_string(points: Vec<Point>) -> String {
     points
         .into_iter()
-        .map(|p| format!("v {0} {1} {2}", p.x, p.y, p.z))
+        .map(|p| p.to_obj_string())
         .collect::<Vec<String>>()
         .join("\n")
 }
@@ -44,7 +47,7 @@ f -4 -2 -3
     ))
 }
 
-fn cuboid(sx: f32, sy: f32, sz: f32) -> Result<String, String> {
+fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
     println!("GENERATING CUBOID");
     if sx <= 0.0 || sy <= 0.0 || sz <= 0.0 {
         return Err(
@@ -52,14 +55,14 @@ fn cuboid(sx: f32, sy: f32, sz: f32) -> Result<String, String> {
         );
     }
     let points = [
-        Point::new(0.0, sy, sz),
-        Point::new(0.0, 0.0, sz),
-        Point::new(sx, 0.0, sz),
-        Point::new(sx, sy, sz),
-        Point::new(0.0, sy, 0.0),
-        Point::new(0.0, 0.0, 0.0),
-        Point::new(sx, 0.0, 0.0),
-        Point::new(sx, sy, 0.0),
+        Point::new(origin.x + 0.0, origin.y + sy, origin.z + sz),
+        Point::new(origin.x + 0.0, origin.y + 0.0, origin.z + sz),
+        Point::new(origin.x + sx, origin.y + 0.0, origin.z + sz),
+        Point::new(origin.x + sx, origin.y + sy, origin.z + sz),
+        Point::new(origin.x + 0.0, origin.y + sy, origin.z + 0.0),
+        Point::new(origin.x + 0.0, origin.y + 0.0, origin.z + 0.0),
+        Point::new(origin.x + sx, origin.y + 0.0, origin.z + 0.0),
+        Point::new(origin.x + sx, origin.y + sy, origin.z + 0.0),
     ];
     Ok(format!(
         r#"{0}
@@ -74,12 +77,12 @@ f -7 -3 -2 -6
     ))
 }
 
-fn cube(size: f32) -> Result<String, String> {
+fn cube(origin: Point, size: f32) -> Result<String, String> {
     println!("GENERATING CUBE");
     if size <= 0.0 {
         return Err("ERROR: cannot generate cube of size less than zero".to_string());
     }
-    cuboid(size, size, size)
+    cuboid(origin, size, size, size)
 }
 
 fn compile(data: String) -> Result<String, String> {
@@ -89,10 +92,16 @@ fn compile(data: String) -> Result<String, String> {
     for line in lines {
         let tokens: Vec<&str> = line.split(' ').collect();
         match tokens[0] {
-            "cube" => result
-                .push_str(&cube(tokens[1].parse::<f32>().expect("invalid value given")).unwrap()),
+            "cube" => result.push_str(
+                &cube(
+                    Point::new(0.0, 0.0, 0.0),
+                    tokens[1].parse::<f32>().expect("invalid value given"),
+                )
+                .unwrap(),
+            ),
             "cuboid" => result.push_str(
                 &cuboid(
+                    Point::new(0.0, 0.0, 0.0),
                     tokens[1].parse::<f32>().expect("non numeric value given"),
                     tokens[2].parse::<f32>().expect("non numeric value given"),
                     tokens[3].parse::<f32>().expect("non numeric value given"),
@@ -132,7 +141,7 @@ mod tests {
                     )
                 }
             }
-            Err(e) => eprintln!("{}", e)
+            Err(e) => eprintln!("{}", e),
         }
     }
 }
