@@ -127,4 +127,8 @@ mod tests {
     fn test_compile_cuboid() {
         run_test("./tests/cuboid/main.kda", "./tests/cuboid/result.obj");
     }
+    #[test]
+    fn test_compile_prism() {
+        run_test("./tests/prism/main.kda", "./tests/prism/result.obj");
+    }
 }
