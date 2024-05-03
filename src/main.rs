@@ -1,3 +1,6 @@
+use std::f32::consts::PI;
+
+#[derive(Clone)]
 struct Point {
     x: f32,
     y: f32,
@@ -11,11 +14,34 @@ impl Point {
 }
 
 fn main() {
-    println!("{}", compile("cuboid 2 3 4".to_string()).unwrap())
+    println!("{}", compile("prism 1".to_string()).unwrap())
 }
 
-fn prism() -> String {
-    "".to_string()
+fn vertex_string(points: Vec<Point>) -> String {
+    points
+        .into_iter()
+        .map(|p| format!("v {0} {1} {2}", p.x, p.y, p.z))
+        .collect::<Vec<String>>()
+        .join("\n")
+}
+
+fn prism(side_len: f32) -> Result<String, String> {
+    let points = [
+        Point::new(0.000000, 1.333333, 0.000000),
+        Point::new(0.0, 0.000000, 1.000000),
+        Point::new((4.0 * PI/3.0).sin(), 0.000000, (-PI/3.0).sin()),
+        Point::new((2.0 * PI/3.0).sin(), 0.000000, (-PI/3.0).sin()),
+    ];
+
+    Ok(format!(
+        r#"{0}
+f -3 -2 -1
+f -4 -2 -1
+f -4 -3 -1
+f -4 -2 -3
+"#,
+        vertex_string(points.to_vec())
+    ))
 }
 
 fn cuboid(sx: f32, sy: f32, sz: f32) -> Result<String, String> {
@@ -35,11 +61,6 @@ fn cuboid(sx: f32, sy: f32, sz: f32) -> Result<String, String> {
         Point::new(sx, 0.0, 0.0),
         Point::new(sx, sy, 0.0),
     ];
-    let vertex_string = points
-        .into_iter()
-        .map(|p| format!("v {0} {1} {2}", p.x, p.y, p.z))
-        .collect::<Vec<String>>()
-        .join("\n");
     Ok(format!(
         r#"{0}
 f -8 -7 -6 -5
@@ -49,7 +70,7 @@ f -4 -8 -5 -1
 f -4 -3 -7 -8
 f -7 -3 -2 -6
 "#,
-        vertex_string
+        vertex_string(points.to_vec())
     ))
 }
 
@@ -77,6 +98,9 @@ fn compile(data: String) -> Result<String, String> {
                     tokens[3].parse::<f32>().expect("non numeric value given"),
                 )
                 .unwrap(),
+            ),
+            "prism" => result.push_str(
+                &prism(tokens[1].parse::<f32>().expect("non numeric value given")).unwrap(),
             ),
             &_ => println!("{} not supported", tokens[0]),
         }
