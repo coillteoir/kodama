@@ -104,10 +104,6 @@ fn compile(data: String) -> Result<String, String> {
             ),
             &_ => println!("{} not supported", tokens[0]),
         }
-        result.push_str(&data);
-    }
-    if !error.is_empty() {
-        return Err(error);
     }
     Ok(result)
 }
