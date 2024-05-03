@@ -1,5 +1,15 @@
+struct Point {
+    x: f32,
+    y: f32,
+    z: f32,
+}
+
 fn main() {
     println!("{}", compile("cuboid 2 3 4".to_string()))
+}
+
+fn prism() -> String {
+    "".to_string()
 }
 
 fn cuboid(sx: f32, sy: f32, sz: f32) -> String {
@@ -7,22 +17,26 @@ fn cuboid(sx: f32, sy: f32, sz: f32) -> String {
     if sx <= 0.0 || sy <= 0.0 || sz <= 0.0 {
         return "could not generate cuboid, side length less than or equal to zero".to_string();
     }
+    let points = [
+        Point {x: 0.0,y: sy,z: sz,},
+        Point {x: 0.0,y: 0.0,z: sz,},
+        Point {x: sx,y: 0.0,z: sz,},
+        Point {x: sx,y: sy,z: sz,},
+        Point {x: 0.0,y: sy,z: 0.0,},
+        Point {x: 0.0,y: 0.0,z: 0.0,},
+        Point {x: sx,y: 0.0,z: 0.0,},
+        Point {x: sx,y: sy,z: 0.0,},
+    ];
+    let vertexString = points.into_iter().map(|p| format!("v {0} {1} {2}", p.x, p.y, p.z)).collect::<Vec<String>>().join("\n");
     format!(
-        r#"v 0 {sy} {sz}
-v 0 0 {sz}
-v {sx} 0 {sz}
-v {sx} {sy} {sz}
-v 0 {sy} 0
-v 0 0 0
-v {sx} 0 0
-v {sx} {sy} 0
+        r#"{0}
 f -8 -7 -6 -5
 f -1 -2 -3 -4
 f -5 -6 -2 -1
 f -4 -8 -5 -1
 f -4 -3 -7 -8
 f -7 -3 -2 -6
-"#
+"#, vertexString
     )
 }
 
