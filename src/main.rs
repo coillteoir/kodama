@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 struct Point {
     x: f32,
     y: f32,
@@ -11,13 +11,38 @@ impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
-    pub fn to_obj_string(&self) -> String {
+    pub fn to_obj_string(self) -> String {
         format!("v {0} {1} {2}", self.x, self.y, self.z)
     }
 }
 
+#[derive(Clone)]
+struct Face {
+    points: Vec<Point>,
+    indexes: Vec<u32>,
+}
+impl Face {
+    pub fn new(points: Vec<Point>, indexes: Vec<u32>) -> Self {
+        Self { points, indexes }
+    }
+    pub fn to_obj_string(&self) -> String {
+        let mut result = "f ".to_string();
+
+        result.push_str(
+            &self
+                .indexes
+                .clone()
+                .into_iter()
+                .map(|i: u32| -> String { format!("-{0}", (self.points.len() as i32 - i as i32)) })
+                .collect::<Vec<String>>()
+                .join(" "),
+        );
+        result
+    }
+}
+
 fn main() {
-    println!("{}", compile("prism 1".to_string()).unwrap())
+    println!("{}", compile("cuboid 2 3 4".to_string()).unwrap())
 }
 
 fn vertex_string(points: Vec<Point>) -> String {
@@ -28,12 +53,29 @@ fn vertex_string(points: Vec<Point>) -> String {
         .join("\n")
 }
 
-fn prism(_radius: f32) -> Result<String, String> {
+fn _sphere(origin: Point, radius: f32, _detail: u32) -> Result<String, String> {
+    if radius <= 0.0 {
+        return Err("radius less than zero".to_string());
+    }
+    // Initialize top and bottom points
+    let _points = [origin];
+    Ok("".to_string())
+}
+
+fn prism(origin: Point, _radius: f32) -> Result<String, String> {
     let points = [
-        Point::new(0.000000, (PI / 3.0).sin(), 0.000000),
-        Point::new(0.0, 0.000000, 0.0_f32.cos()),
-        Point::new((4.0 * PI / 3.0).sin(), 0.000000, (2.0 * -PI / 3.0).cos()),
-        Point::new((2.0 * PI / 3.0).sin(), 0.000000, (2.0 * -PI / 3.0).cos()),
+        Point::new(origin.x, origin.y + (PI / 3.0).sin(), origin.z),
+        Point::new(origin.x, origin.y, origin.z + 0.0_f32.cos()),
+        Point::new(
+            origin.x + (4.0 * PI / 3.0).sin(),
+            origin.y,
+            (2.0 * -PI / 3.0).cos(),
+        ),
+        Point::new(
+            origin.x + (2.0 * PI / 3.0).sin(),
+            origin.y,
+            (2.0 * -PI / 3.0).cos(),
+        ),
     ];
 
     Ok(format!(
@@ -64,16 +106,36 @@ fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
         Point::new(origin.x + sx, origin.y + 0.0, origin.z + 0.0),
         Point::new(origin.x + sx, origin.y + sy, origin.z + 0.0),
     ];
+
+    let faces = [
+        Face::new(points.to_vec(), vec![0, 1, 2, 3]),
+        Face::new(points.to_vec(), vec![7, 6, 5, 4]),
+        Face::new(points.to_vec(), vec![4, 5, 1, 0]),
+        Face::new(points.to_vec(), vec![3, 7, 4, 0]),
+        Face::new(points.to_vec(), vec![3, 2, 6, 7]),
+        Face::new(points.to_vec(), vec![6, 2, 1, 5]),
+    ];
+
+    //    println!(
+    //        "{}",
+    //        faces
+    //            .clone()
+    //            .into_iter()
+    //            .map(|f| f.to_obj_string())
+    //            .collect::<Vec<String>>()
+    //            .join("\n")
+    //    );
+
     Ok(format!(
         r#"{0}
-f -8 -7 -6 -5
-f -1 -2 -3 -4
-f -5 -6 -2 -1
-f -4 -8 -5 -1
-f -4 -3 -7 -8
-f -7 -3 -2 -6
+{1}
 "#,
-        vertex_string(points.to_vec())
+        vertex_string(points.to_vec(),),
+        faces
+            .into_iter()
+            .map(|f| f.to_obj_string())
+            .collect::<Vec<String>>()
+            .join("\n")
     ))
 }
 
@@ -109,7 +171,11 @@ fn compile(data: String) -> Result<String, String> {
                 .unwrap(),
             ),
             "prism" => result.push_str(
-                &prism(tokens[1].parse::<f32>().expect("non numeric value given")).unwrap(),
+                &prism(
+                    Point::new(0.0, 0.0, 0.0),
+                    tokens[1].parse::<f32>().expect("non numeric value given"),
+                )
+                .unwrap(),
             ),
             &_ => println!("{} not supported", tokens[0]),
         }
