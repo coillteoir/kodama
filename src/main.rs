@@ -78,14 +78,23 @@ fn prism(origin: Point, _radius: f32) -> Result<String, String> {
         ),
     ];
 
+    let faces = [
+        Face::new(points.to_vec(), vec![1, 2, 3]),
+        Face::new(points.to_vec(), vec![0, 2, 3]),
+        Face::new(points.to_vec(), vec![0, 1, 3]),
+        Face::new(points.to_vec(), vec![0, 2, 1]),
+    ];
+
     Ok(format!(
         r#"{0}
-f -3 -2 -1
-f -4 -2 -1
-f -4 -3 -1
-f -4 -2 -3
+{1}
 "#,
-        vertex_string(points.to_vec())
+        vertex_string(points.to_vec()),
+        faces
+            .into_iter()
+            .map(|f| f.to_obj_string())
+            .collect::<Vec<String>>()
+            .join("\n")
     ))
 }
 
