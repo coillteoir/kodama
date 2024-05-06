@@ -8,7 +8,7 @@ struct Point {
 }
 
 impl Point {
-    pub fn new(x: f32, y: f32, z: f32) -> Self {
+    const fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
     pub fn to_obj_string(self) -> String {
@@ -21,6 +21,7 @@ struct Face {
     points: Vec<Point>,
     indexes: Vec<u32>,
 }
+
 impl Face {
     pub fn new(points: Vec<Point>, indexes: Vec<u32>) -> Self {
         Self { points, indexes }
@@ -33,7 +34,7 @@ impl Face {
                 .indexes
                 .clone()
                 .into_iter()
-                .map(|i: u32| -> String { format!("-{0}", (self.points.len() as i32 - i as i32)) })
+                .map(|i: u32| -> String { format!("-{0}", (self.points.len() as u64 - u64::from(i))) })
                 .collect::<Vec<String>>()
                 .join(" "),
         );
@@ -42,27 +43,26 @@ impl Face {
 }
 
 fn main() {
-    println!("{}", compile("cuboid 2 3 4".to_string()).unwrap())
+    println!("{}", compile("cuboid 2 3 4"));
 }
 
 fn vertex_string(points: Vec<Point>) -> String {
     points
         .into_iter()
-        .map(|p| p.to_obj_string())
+        .map(Point::to_obj_string)
         .collect::<Vec<String>>()
         .join("\n")
 }
 
-fn _sphere(origin: Point, radius: f32, _detail: u32) -> Result<String, String> {
+fn _sphere(_origin: Point, radius: f32, _detail: u32) -> Result<String, String> {
     if radius <= 0.0 {
         return Err("radius less than zero".to_string());
     }
     // Initialize top and bottom points
-    let _points = [origin];
-    Ok("".to_string())
+    Ok(String::new())
 }
 
-fn prism(origin: Point, _radius: f32) -> Result<String, String> {
+fn prism(origin: Point, _radius: f32) -> String {
     let points = [
         Point::new(origin.x, origin.y + (PI / 3.0).sin(), origin.z),
         Point::new(origin.x, origin.y, origin.z + 0.0_f32.cos()),
@@ -85,7 +85,7 @@ fn prism(origin: Point, _radius: f32) -> Result<String, String> {
         Face::new(points.to_vec(), vec![0, 2, 1]),
     ];
 
-    Ok(format!(
+    format!(
         r#"{0}
 {1}
 "#,
@@ -95,7 +95,7 @@ fn prism(origin: Point, _radius: f32) -> Result<String, String> {
             .map(|f| f.to_obj_string())
             .collect::<Vec<String>>()
             .join("\n")
-    ))
+    )
 }
 
 fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
@@ -125,16 +125,6 @@ fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
         Face::new(points.to_vec(), vec![6, 2, 1, 5]),
     ];
 
-    //    println!(
-    //        "{}",
-    //        faces
-    //            .clone()
-    //            .into_iter()
-    //            .map(|f| f.to_obj_string())
-    //            .collect::<Vec<String>>()
-    //            .join("\n")
-    //    );
-
     Ok(format!(
         r#"{0}
 {1}
@@ -156,13 +146,13 @@ fn cube(origin: Point, size: f32) -> Result<String, String> {
     cuboid(origin, size, size, size)
 }
 
-fn compile(data: String) -> Result<String, String> {
-    let mut result = String::from("");
+fn compile(data: &str) -> std::string::String {
+    let mut result = String::new();
 
     let lines = data.split('\n');
     for line in lines {
         let tokens: Vec<&str> = line.split(' ').collect();
-        match tokens[0] {
+        match *tokens.first().unwrap() {
             "cube" => result.push_str(
                 &cube(
                     Point::new(0.0, 0.0, 0.0),
@@ -184,12 +174,11 @@ fn compile(data: String) -> Result<String, String> {
                     Point::new(0.0, 0.0, 0.0),
                     tokens[1].parse::<f32>().expect("non numeric value given"),
                 )
-                .unwrap(),
             ),
             &_ => println!("{} not supported", tokens[0]),
         }
     }
-    Ok(result)
+    result
 }
 
 #[cfg(test)]
@@ -200,7 +189,7 @@ mod tests {
     fn run_test(input_path: String, result_path: String) {
         let input = fs::read_to_string(&input_path).expect("could not load file");
         let result = fs::read_to_string(&result_path).expect("could not load file");
-        assert_eq!(compile(input), Ok(result));
+        assert_eq!(compile(&input), result);
     }
     #[test]
     fn walk_tests() {
