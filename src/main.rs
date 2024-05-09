@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Point {
     x: f32,
     y: f32,
@@ -34,7 +34,9 @@ impl Face {
                 .indexes
                 .clone()
                 .into_iter()
-                .map(|i: u32| -> String { format!("-{0}", (self.points.len() as u64 - u64::from(i))) })
+                .map(|i: u32| -> String {
+                    format!("-{0}", (self.points.len() as u64 - u64::from(i)))
+                })
                 .collect::<Vec<String>>()
                 .join(" "),
         );
@@ -43,7 +45,7 @@ impl Face {
 }
 
 fn main() {
-    println!("{}", compile("cuboid 2 3 4"));
+    println!("{}", compile("sphere"));
 }
 
 fn vertex_string(points: Vec<Point>) -> String {
@@ -54,15 +56,39 @@ fn vertex_string(points: Vec<Point>) -> String {
         .join("\n")
 }
 
-fn _sphere(_origin: Point, radius: f32, _detail: u32) -> Result<String, String> {
+fn sphere(origin: Point, radius: f32, detail: u32) -> Result<String, String> {
     if radius <= 0.0 {
         return Err("radius less than zero".to_string());
     }
     // Initialize top and bottom points
+    let mut points = [
+        Point::new(
+            origin.x + (radius * (PI / 2.0).cos()),
+            origin.y + (radius * (PI / 2.0).sin()),
+            origin.z,
+        ),
+        Point::new(
+            origin.x + (radius * (PI / -2.0).cos()),
+            origin.y + (radius * (PI / -2.0).sin()),
+            origin.z,
+        ),
+    ]
+    .to_vec();
+
+    for col in 0..detail {
+        for row in 0..detail {
+            points.push(Point::new(
+                origin.x + (radius * ((2.0 * PI) / (detail as f32) * (col as f32)).cos()),
+                origin.y + (radius * ((2.0 * PI) / (detail as f32) * (col as f32)).sin()),
+                origin.z + (radius * ((2.0 * PI) / (detail as f32) * (row as f32)).sin()),
+            ))
+        }
+    }
+    println!("{:#?}", points);
     Ok(String::new())
 }
 
-fn prism(origin: Point, _radius: f32) -> String {
+fn cone(origin: Point, _detail: i32, _radius: f32) -> String {
     let points = [
         Point::new(origin.x, origin.y + (PI / 3.0).sin(), origin.z),
         Point::new(origin.x, origin.y, origin.z + 0.0_f32.cos()),
@@ -129,7 +155,7 @@ fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
         r#"{0}
 {1}
 "#,
-        vertex_string(points.to_vec(),),
+        vertex_string(points.to_vec()),
         faces
             .into_iter()
             .map(|f| f.to_obj_string())
@@ -169,12 +195,12 @@ fn compile(data: &str) -> std::string::String {
                 )
                 .unwrap(),
             ),
-            "prism" => result.push_str(
-                &prism(
-                    Point::new(0.0, 0.0, 0.0),
-                    tokens[1].parse::<f32>().expect("non numeric value given"),
-                )
-            ),
+            "cone" => result.push_str(&cone(
+                Point::new(0.0, 0.0, 0.0),
+                0,
+                tokens[1].parse::<f32>().expect("non numeric value given"),
+            )),
+            "sphere" => result.push_str(&sphere(Point::new(0.0, 0.0, 0.0), 10.0, 10).unwrap()),
             &_ => println!("{} not supported", tokens[0]),
         }
     }
