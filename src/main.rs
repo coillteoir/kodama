@@ -27,7 +27,7 @@ impl Face {
         Self { points, indexes }
     }
     pub fn to_obj_string(&self) -> String {
-        let mut result = "f ".to_string();
+        let mut result = String::from("f ");
 
         result.push_str(
             &self
@@ -44,10 +44,6 @@ impl Face {
     }
 }
 
-fn main() {
-    println!("{}", compile("sphere"));
-}
-
 fn vertex_string(points: Vec<Point>) -> String {
     points
         .into_iter()
@@ -56,36 +52,66 @@ fn vertex_string(points: Vec<Point>) -> String {
         .join("\n")
 }
 
+fn main() {
+    println!("{}", compile("sphere"));
+}
+
+fn render_obj(points: Vec<Point>, faces: Vec<Face>) -> String {
+    format!(
+        r#"{0}
+{1}
+"#,
+        vertex_string(points.to_vec()),
+        faces
+            .into_iter()
+            .map(|f| f.to_obj_string())
+            .collect::<Vec<String>>()
+            .join("\n")
+    )
+}
+
 fn sphere(origin: Point, radius: f32, detail: u32) -> Result<String, String> {
-    if radius <= 0.0 {
-        return Err("radius less than zero".to_string());
-    }
-    // Initialize top and bottom points
-    let mut points = [
-        Point::new(
-            origin.x + (radius * (PI / 2.0).cos()),
-            origin.y + (radius * (PI / 2.0).sin()),
-            origin.z,
-        ),
-        Point::new(
-            origin.x + (radius * (PI / -2.0).cos()),
-            origin.y + (radius * (PI / -2.0).sin()),
-            origin.z,
-        ),
+    // top and bottom point
+    // create vertical "strips" down the sphere,
+    // rotating around the Z axis
+    // Create faces procedurally
+
+    let points = [
+        //top
+        Point::new(origin.x, origin.y + (radius * (2.0 * PI).sin()), origin.z),
+        //bottom
+        Point::new(origin.x, origin.y + (radius * (-2.0 * PI).sin()), origin.z),
+        //north
+        Point::new(origin.x, origin.y, origin.z + (radius * (2.0 * PI).sin())),
+        //south
+        Point::new(origin.x, origin.y, origin.z + (radius * (-2.0 * PI).sin())),
+        //east
+        Point::new(origin.x + (radius * (0.0_f32).cos()), origin.y, origin.z),
+        //west
+        Point::new(origin.x + (radius * (PI).cos()), origin.y, origin.z),
     ]
     .to_vec();
 
-    for col in 0..detail {
-        for row in 0..detail {
-            points.push(Point::new(
-                origin.x + (radius * ((2.0 * PI) / (detail as f32) * (col as f32)).cos()),
-                origin.y + (radius * ((2.0 * PI) / (detail as f32) * (col as f32)).sin()),
-                origin.z + (radius * ((2.0 * PI) / (detail as f32) * (row as f32)).sin()),
-            ))
-        }
-    }
-    println!("{:#?}", points);
-    Ok(String::new())
+    let faces = [
+        // top, north, east
+        Face::new(points.clone(), vec![0, 2, 4]),
+        // top, north, west
+        Face::new(points.clone(), vec![0, 2, 5]),
+        // top, south, east
+        Face::new(points.clone(), vec![0, 3, 4]),
+        // top, south, west
+        Face::new(points.clone(), vec![0, 3, 5]),
+        // bottom, north, east
+        Face::new(points.clone(), vec![1, 2, 4]),
+        // bottom, north, west
+        Face::new(points.clone(), vec![1, 2, 5]),
+        // bottom, south, east
+        Face::new(points.clone(), vec![1, 3, 4]),
+        // bottom, south, west
+        Face::new(points.clone(), vec![1, 3, 5]),
+    ];
+
+    Ok(render_obj(points, faces.to_vec()))
 }
 
 fn cone(origin: Point, _detail: i32, _radius: f32) -> String {
@@ -111,17 +137,7 @@ fn cone(origin: Point, _detail: i32, _radius: f32) -> String {
         Face::new(points.to_vec(), vec![0, 2, 1]),
     ];
 
-    format!(
-        r#"{0}
-{1}
-"#,
-        vertex_string(points.to_vec()),
-        faces
-            .into_iter()
-            .map(|f| f.to_obj_string())
-            .collect::<Vec<String>>()
-            .join("\n")
-    )
+    render_obj(points.to_vec(), faces.to_vec())
 }
 
 fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
@@ -132,14 +148,14 @@ fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
         );
     }
     let points = [
-        Point::new(origin.x + 0.0, origin.y + sy, origin.z + sz),
-        Point::new(origin.x + 0.0, origin.y + 0.0, origin.z + sz),
-        Point::new(origin.x + sx, origin.y + 0.0, origin.z + sz),
+        Point::new(origin.x, origin.y + sy, origin.z + sz),
+        Point::new(origin.x, origin.y, origin.z + sz),
+        Point::new(origin.x + sx, origin.y, origin.z + sz),
         Point::new(origin.x + sx, origin.y + sy, origin.z + sz),
-        Point::new(origin.x + 0.0, origin.y + sy, origin.z + 0.0),
-        Point::new(origin.x + 0.0, origin.y + 0.0, origin.z + 0.0),
-        Point::new(origin.x + sx, origin.y + 0.0, origin.z + 0.0),
-        Point::new(origin.x + sx, origin.y + sy, origin.z + 0.0),
+        Point::new(origin.x, origin.y + sy, origin.z),
+        Point::new(origin.x, origin.y, origin.z),
+        Point::new(origin.x + sx, origin.y, origin.z),
+        Point::new(origin.x + sx, origin.y + sy, origin.z),
     ];
 
     let faces = [
@@ -151,17 +167,7 @@ fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
         Face::new(points.to_vec(), vec![6, 2, 1, 5]),
     ];
 
-    Ok(format!(
-        r#"{0}
-{1}
-"#,
-        vertex_string(points.to_vec()),
-        faces
-            .into_iter()
-            .map(|f| f.to_obj_string())
-            .collect::<Vec<String>>()
-            .join("\n")
-    ))
+    Ok(render_obj(points.to_vec(), faces.to_vec()))
 }
 
 fn cube(origin: Point, size: f32) -> Result<String, String> {
