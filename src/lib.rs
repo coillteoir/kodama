@@ -52,7 +52,6 @@ fn vertex_string(points: Vec<Point>) -> String {
         .join("\n")
 }
 
-
 fn render_obj(points: Vec<Point>, faces: Vec<Face>) -> String {
     format!(
         r#"{0}
@@ -138,11 +137,11 @@ fn cone(origin: Point, _detail: i32, _radius: f32) -> String {
 }
 
 fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
-    println!("GENERATING CUBOID");
+    eprintln!("GENERATING CUBOID");
     if sx <= 0.0 || sy <= 0.0 || sz <= 0.0 {
-        return Err(
-            String::from("could not generate cuboid, side length less than or equal to zero"),
-        );
+        return Err(String::from(
+            "could not generate cuboid, side length less than or equal to zero",
+        ));
     }
     let points = [
         Point::new(origin.x, origin.y + sy, origin.z + sz),
@@ -168,7 +167,7 @@ fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
 }
 
 fn cube(origin: Point, size: f32) -> Result<String, String> {
-    println!("GENERATING CUBE");
+    eprintln!("GENERATING CUBE");
     if size <= 0.0 {
         return Err("ERROR: cannot generate cube of size less than zero".to_string());
     }
@@ -204,7 +203,7 @@ pub fn compile(data: &str) -> String {
                 tokens[1].parse::<f32>().expect("non numeric value given"),
             )),
             "sphere" => result.push_str(&sphere(Point::new(0.0, 0.0, 0.0), 10.0, 10).unwrap()),
-            &_ => println!("{} not supported", tokens[0]),
+            &_ => eprintln!("{} not supported", tokens[0]),
         }
     }
     result

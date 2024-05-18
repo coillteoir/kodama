@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use std::fs;
     use kodama::compile;
+    use std::fs;
 
     fn run_test(input_path: String, result_path: String) {
         let input = fs::read_to_string(&input_path).expect("could not load file");
@@ -15,8 +15,8 @@ mod tests {
             Ok(entries) => {
                 for entry in entries {
                     let path = entry.expect("could not open dir").path();
-                    if !path.is_dir(){
-                        continue
+                    if !path.is_dir() {
+                        continue;
                     }
                     let input = path.join("main.kda");
                     let output = path.join("result.obj");
