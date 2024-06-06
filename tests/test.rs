@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use kodama::compile;
+    use kodama::compiler::compile;
     use std::fs;
 
     fn run_test(input_path: String, result_path: String) {
