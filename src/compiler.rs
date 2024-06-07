@@ -61,7 +61,14 @@ pub fn compile(data: &str) -> String {
                 0,
                 tokens[1].parse::<f32>().expect("non numeric value given"),
             )),
-            "sphere" => result.push_str(&sphere(Point::new(0.0, 0.0, 0.0), 1.0, 10).unwrap()),
+            "sphere" => result.push_str(
+                &sphere(
+                    Point::new(0.0, 0.0, 0.0),
+                    tokens[1].parse::<f32>().expect("non numeric value given"),
+                    10,
+                )
+                .unwrap(),
+            ),
             "#" => todo!(),
             &_ => eprintln!("{} not supported", tokens[0]),
         }

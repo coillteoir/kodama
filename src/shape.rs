@@ -75,13 +75,13 @@ pub fn sphere(origin: Point, radius: f32, _detail: u32) -> Result<String, String
 
     let points = vec![
         //top
-        Point::new(origin.x, origin.y + (radius * (PI/2.0).sin()), origin.z),
+        Point::new(origin.x, origin.y + (radius * (PI / 2.0).sin()), origin.z),
         //bottom
-        Point::new(origin.x, origin.y + (radius * (PI/-2.0).sin()), origin.z),
+        Point::new(origin.x, origin.y + (radius * (PI / -2.0).sin()), origin.z),
         //north
-        Point::new(origin.x, origin.y, origin.z + (radius * (PI/2.0).sin())),
+        Point::new(origin.x, origin.y, origin.z + (radius * (PI / 2.0).sin())),
         //south
-        Point::new(origin.x, origin.y, origin.z + (radius * (PI/-2.0).sin())),
+        Point::new(origin.x, origin.y, origin.z + (radius * (PI / -2.0).sin())),
         //east
         Point::new(origin.x + (radius * (0.0_f32).cos()), origin.y, origin.z),
         //west

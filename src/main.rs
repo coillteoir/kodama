@@ -13,12 +13,11 @@ use std::path::Path;
 struct Args {
     #[arg(help = "source file")]
     source: String,
-    #[arg(help = "output file", default_value="")]
+    #[arg(help = "output file", default_value = "")]
     output: String,
 }
 
 fn main() {
-
     println!("{}", compile("sphere 1"));
 
     let args = Args::parse();
