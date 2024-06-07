@@ -29,13 +29,13 @@ fn validate_braces(source: &str) -> Result<(), String> {
 }
 
 fn parser(data: &str) -> Result<String, String> {
-    validate_braces(data);
+    let _ = validate_braces(data);
     Ok(String::from("yay"))
 }
 
 pub fn compile(data: &str) -> String {
     let mut result = String::new();
-    parser(data);
+    let _ = parser(data);
     let lines = data.split('\n');
     for line in lines {
         let tokens: Vec<&str> = line.split(' ').collect();
@@ -61,7 +61,7 @@ pub fn compile(data: &str) -> String {
                 0,
                 tokens[1].parse::<f32>().expect("non numeric value given"),
             )),
-            "sphere" => result.push_str(&sphere(Point::new(0.0, 0.0, 0.0), 10.0, 10).unwrap()),
+            "sphere" => result.push_str(&sphere(Point::new(0.0, 0.0, 0.0), 1.0, 10).unwrap()),
             "#" => todo!(),
             &_ => eprintln!("{} not supported", tokens[0]),
         }

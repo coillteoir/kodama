@@ -4,8 +4,8 @@ mod tests {
     use std::fs;
 
     fn run_test(input_path: String, result_path: String) {
-        let input = fs::read_to_string(&input_path).expect("could not load file");
-        let result = fs::read_to_string(&result_path).expect("could not load file");
+        let input = fs::read_to_string(input_path).expect("could not load file");
+        let result = fs::read_to_string(result_path).expect("could not load file");
         assert_eq!(compile(&input), result);
     }
     #[test]
