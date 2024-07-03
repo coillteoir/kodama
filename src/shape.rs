@@ -17,15 +17,16 @@ impl Point {
 }
 
 #[derive(Clone)]
-struct Face {
-    points: Vec<Point>,
+struct Face<'lt> {
+    points: &'lt Vec<Point>,
     indexes: Vec<u32>,
 }
 
-impl Face {
-    pub fn new(points: Vec<Point>, indexes: Vec<u32>) -> Self {
+impl<'lt> Face<'lt> {
+    pub fn new(points: &'lt Vec<Point>, indexes: Vec<u32>) -> Self {
         Self { points, indexes }
     }
+
     pub fn to_obj_string(self) -> String {
         let mut result = String::from("f ");
 
@@ -52,7 +53,7 @@ fn vertex_string(points: Vec<Point>) -> String {
         .join("\n")
 }
 
-fn render_obj(points: Vec<Point>, faces: Vec<Face>) -> String {
+fn render_obj(points: &[Point], faces: Vec<Face>) -> String {
     format!(
         r#"{0}
 {1}
@@ -73,45 +74,39 @@ pub fn sphere(origin: Point, radius: f32, _detail: u32) -> Result<String, String
     // Create faces procedurally
     // To start we'll create a simple octahedron
 
-    let points = vec![
-        //top
-        Point::new(origin.x, origin.y + (radius * (PI / 2.0).sin()), origin.z),
-        //bottom
-        Point::new(origin.x, origin.y + (radius * (PI / -2.0).sin()), origin.z),
-        //north
-        Point::new(origin.x, origin.y, origin.z + (radius * (PI / 2.0).sin())),
-        //south
-        Point::new(origin.x, origin.y, origin.z + (radius * (PI / -2.0).sin())),
-        //east
-        Point::new(origin.x + (radius * (0.0_f32).cos()), origin.y, origin.z),
-        //west
-        Point::new(origin.x + (radius * (PI).cos()), origin.y, origin.z),
-    ];
+    let top = Point::new(origin.x, origin.y + (radius * (PI / 2.0).sin()), origin.z);
+    let bottom = Point::new(origin.x, origin.y + (radius * (PI / -2.0).sin()), origin.z);
+    let north = Point::new(origin.x, origin.y, origin.z + (radius * (PI / 2.0).sin()));
+    let south = Point::new(origin.x, origin.y, origin.z + (radius * (PI / -2.0).sin()));
+    let east = Point::new(origin.x + (radius * (0.0_f32).cos()), origin.y, origin.z);
+    let west = Point::new(origin.x + (radius * (PI).cos()), origin.y, origin.z);
 
-    let faces = [
+    let points = vec![top, bottom, north, south, east, west];
+
+    let faces = vec![
         // top, north, east
-        Face::new(points.clone(), vec![0, 2, 4]),
+        Face::new(&points, vec![0, 2, 4]),
         // top, north, west
-        Face::new(points.clone(), vec![0, 2, 5]),
+        Face::new(&points, vec![0, 2, 5]),
         // top, south, east
-        Face::new(points.clone(), vec![0, 3, 4]),
+        Face::new(&points, vec![0, 3, 4]),
         // top, south, west
-        Face::new(points.clone(), vec![0, 3, 5]),
+        Face::new(&points, vec![0, 3, 5]),
         // bottom, north, east
-        Face::new(points.clone(), vec![1, 2, 4]),
+        Face::new(&points, vec![1, 2, 4]),
         // bottom, north, west
-        Face::new(points.clone(), vec![1, 2, 5]),
+        Face::new(&points, vec![1, 2, 5]),
         // bottom, south, east
-        Face::new(points.clone(), vec![1, 3, 4]),
+        Face::new(&points, vec![1, 3, 4]),
         // bottom, south, west
-        Face::new(points.clone(), vec![1, 3, 5]),
+        Face::new(&points, vec![1, 3, 5]),
     ];
 
-    Ok(render_obj(points, faces.to_vec()))
+    Ok(render_obj(&points, faces))
 }
 
 pub fn cone(origin: Point, _detail: i32, _radius: f32) -> String {
-    let points = [
+    let points = vec![
         Point::new(origin.x, origin.y + (PI / 3.0).sin(), origin.z),
         Point::new(origin.x, origin.y, origin.z + 0.0_f32.cos()),
         Point::new(
@@ -126,14 +121,14 @@ pub fn cone(origin: Point, _detail: i32, _radius: f32) -> String {
         ),
     ];
 
-    let faces = [
-        Face::new(points.to_vec(), vec![1, 2, 3]),
-        Face::new(points.to_vec(), vec![0, 2, 3]),
-        Face::new(points.to_vec(), vec![0, 1, 3]),
-        Face::new(points.to_vec(), vec![0, 2, 1]),
+    let faces = vec![
+        Face::new(&points, vec![1, 2, 3]),
+        Face::new(&points, vec![0, 2, 3]),
+        Face::new(&points, vec![0, 1, 3]),
+        Face::new(&points, vec![0, 2, 1]),
     ];
 
-    render_obj(points.to_vec(), faces.to_vec())
+    render_obj(&points, faces)
 }
 
 pub fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String> {
@@ -142,7 +137,8 @@ pub fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String
             "could not generate cuboid, side length less than or equal to zero",
         ));
     }
-    let points = [
+
+    let points = vec![
         Point::new(origin.x, origin.y + sy, origin.z + sz),
         Point::new(origin.x, origin.y, origin.z + sz),
         Point::new(origin.x + sx, origin.y, origin.z + sz),
@@ -153,16 +149,16 @@ pub fn cuboid(origin: Point, sx: f32, sy: f32, sz: f32) -> Result<String, String
         Point::new(origin.x + sx, origin.y + sy, origin.z),
     ];
 
-    let faces = [
-        Face::new(points.to_vec(), vec![0, 1, 2, 3]),
-        Face::new(points.to_vec(), vec![7, 6, 5, 4]),
-        Face::new(points.to_vec(), vec![4, 5, 1, 0]),
-        Face::new(points.to_vec(), vec![3, 7, 4, 0]),
-        Face::new(points.to_vec(), vec![3, 2, 6, 7]),
-        Face::new(points.to_vec(), vec![6, 2, 1, 5]),
+    let faces = vec![
+        Face::new(&points, vec![0, 1, 2, 3]),
+        Face::new(&points, vec![7, 6, 5, 4]),
+        Face::new(&points, vec![4, 5, 1, 0]),
+        Face::new(&points, vec![3, 7, 4, 0]),
+        Face::new(&points, vec![3, 2, 6, 7]),
+        Face::new(&points, vec![6, 2, 1, 5]),
     ];
 
-    Ok(render_obj(points.to_vec(), faces.to_vec()))
+    Ok(render_obj(&points, faces))
 }
 
 pub fn cube(origin: Point, size: f32) -> Result<String, String> {

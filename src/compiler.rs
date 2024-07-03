@@ -33,10 +33,11 @@ fn parser(data: &str) -> Result<String, String> {
     Ok(String::from("yay"))
 }
 
-pub fn compile(data: &str) -> String {
+pub fn compile(data: &str) -> Result<String, String> {
     let mut result = String::new();
-    let _ = parser(data);
     let lines = data.split('\n');
+    let _ = parser(data);
+
     for line in lines {
         let tokens: Vec<&str> = line.split(' ').collect();
         match *tokens.first().unwrap() {
@@ -73,5 +74,5 @@ pub fn compile(data: &str) -> String {
             &_ => eprintln!("{} not supported", tokens[0]),
         }
     }
-    result
+    Ok(result)
 }
