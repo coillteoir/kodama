@@ -6,4 +6,6 @@ cargo clippy -- \
     -Wclippy::nursery \
     -Wclippy::cargo \
     -Wclippy::suspicious \
+    -Wclippy::complexity \
+    -Wclippy::style \
     -Wclippy::perf

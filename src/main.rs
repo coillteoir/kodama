@@ -1,39 +1,23 @@
 use clap::Parser;
-use kodama::compiler::compile;
-use std::ffi::OsStr;
+use kodama::compiler::*;
 use std::fs;
-use std::path::Path;
 
 #[derive(Parser)]
-#[command(
-    author = "David Lynch",
-    about = "3d modelling but epic",
-    long_about = "lengthy epic"
-)]
+#[command(author = "David Lynch", about = "3d modelling but epic")]
 struct Args {
-    #[arg(help = "source file")]
+    #[arg(short, long, help = "source file")]
     source: String,
-    #[arg(help = "output file", default_value = "")]
+    #[arg(short, long, help = "output file")]
     output: String,
 }
 
 fn main() {
-    println!("{}", compile("sphere 1"));
-
     let args = Args::parse();
 
-    let source_path = Path::new(&args.source);
-    let output_path = Path::new(&args.output);
-
-    if source_path.extension().and_then(OsStr::to_str) != Some("kda") {
-        eprintln!("please specify a kodama source file");
-        return;
-    }
-    let source = fs::read_to_string(source_path).expect("couldn't load source file");
-
-    match output_path.extension().and_then(OsStr::to_str) {
-        Some("obj") => println!("{}", compile(&source)),
-        Some(other) => eprintln!("file type {other} not supported"),
-        None => println!("{}", compile(&source)),
+    let contents = fs::read_to_string(args.source).expect("File not found");
+    if let Ok(result) = compile(&contents) {
+        if let Err(e) = fs::write(args.output, result) {
+            panic!("{}", e)
+        }
     }
 }
