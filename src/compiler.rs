@@ -1,42 +1,8 @@
 use crate::shape::{cone, cube, cuboid, sphere, Point};
 
-#[derive(Debug, Clone)]
-struct Token {}
-
-fn validate_braces(source: &str) -> Result<(), String> {
-    let braces = String::from(source)
-        .chars()
-        .filter(|c| (*c == '{' || *c == '}'))
-        .collect::<Vec<char>>();
-
-    if braces.len() % 2 != 0 {
-        return Err(String::from("invalid amount of braces"));
-    }
-    let mut stack = Vec::<char>::new();
-    for brace in braces.into_iter() {
-        if brace == '{' {
-            stack.push(brace);
-        }
-
-        if brace == '}' {
-            stack.pop();
-        }
-    }
-    if !stack.is_empty() {
-        return Err(String::from("mismatched braces"));
-    }
-    Ok(())
-}
-
-fn parser(data: &str) -> Result<String, String> {
-    let _ = validate_braces(data);
-    Ok(String::from("yay"))
-}
-
 pub fn compile(data: &str) -> Result<String, String> {
     let mut result = String::new();
     let lines = data.split('\n');
-    let _ = parser(data);
 
     for line in lines {
         let tokens: Vec<&str> = line.split(' ').collect();
