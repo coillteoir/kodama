@@ -5,9 +5,9 @@ use std::fs;
 #[derive(Parser)]
 #[command(author = "David Lynch", about = "3d modelling but epic")]
 struct Args {
-    #[arg(short, long, help = "source file", default_value_t=("./tests/cube/main.kda".to_string()))]
+    #[arg(short, long, help = "source file", default_value_t="./tests/cube/main.kda".to_string())]
     source: String,
-    #[arg(short, long, help = "output file", default_value_t=("output.obj".to_string()))]
+    #[arg(short, long, help = "output file", default_value_t="output.obj".to_string())]
     output: String,
 }
 
