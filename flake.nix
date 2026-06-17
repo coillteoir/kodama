@@ -1,32 +1,20 @@
 {
-  description = "A very basic flake";
+  description = "my project description";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
+
+    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-  }: let
-    system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
-  in {
-    devShells.${system}.default = pkgs.mkShell {
-      buildInputs = [
-        pkgs.vim
-        pkgs.cargo
-        pkgs.clippy
-        pkgs.rustfmt
-        pkgs.f3d
-        pkgs.git
-      ];
-    };
-    packages.x86_64-linux.default = pkgs.rustPlatform.buildRustPackage rec {
-      name = "kodama";
-      src = ./.;
-
-      cargoHash = "sha256-U9Un9x9EfIrJ2Zmem935SIes3KF2Aq8eip5u4PkBWFI=";
-    };
-  };
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachDefaultSystem
+      (system:
+        let nixpkgsPkgs = if builtins.hasAttr "packages" nixpkgs then nixpkgs.packages.${system} else ( if builtins.hasAttr "legacyPackages" nixpkgs then nixpkgs.legacyPackages.${system} else nixpkgs);
+        in
+        {
+          devShells.default = import ./shell.nix { pkgs=nixpkgsPkgs; };
+        }
+      );
 }
